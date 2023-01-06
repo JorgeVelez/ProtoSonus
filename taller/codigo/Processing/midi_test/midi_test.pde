@@ -8,7 +8,7 @@ int nx = 16;
 int ny = 12;
 
   int channel = 0;
-  int pitch = 64;
+  int pitch = 60;
   int velocity = 127;
   
   ArrayList<Knob>  buttons = new ArrayList<Knob> ();
