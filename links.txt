@@ -4,5 +4,7 @@ http://editor.patchandtweak.com/
 EJEMPLOS AUDIO:
 https://tonejs.github.io/examples/
 
+BUENA DOCUMENTACIÓN SOBRE SíNTESIS
+
 MATERIAL:
 https://drive.google.com/drive/folders/1JoIfS10LMhq4aMeGh-jI5L3bu_jUrMHQ?usp=sharing
