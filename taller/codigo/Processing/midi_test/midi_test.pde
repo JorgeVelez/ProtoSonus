@@ -35,7 +35,7 @@ void setup() {
      .setSize(1100, 300)
      .setGrid(nx, ny)
      .setGap(10, 10)
-     .setInterval(125)
+     .setInterval(225)
      .setMode(ControlP5.MULTIPLES)
      .setColorBackground(color(120))
      .setBackground(color(40))

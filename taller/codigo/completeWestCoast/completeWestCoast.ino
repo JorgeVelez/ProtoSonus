@@ -57,10 +57,10 @@ int muxValues[MnumControls] = {};
 #define MUXfilterfreq 0
 
 //POTENTIOMETERS
-int potPin1 = A4;
-int potPin2 = A5;
-int outputValuePotPin1 = 0.0;
-int sensorValuePotPin1 = 0;
+//int potPin1 = A4;
+//int potPin2 = A5;
+//int outputValuePotPin1 = 0.0;
+//int sensorValuePotPin1 = 0;
 
 //Switch pin numbers
 #define numSwitch 3
@@ -99,19 +99,13 @@ int bendRange = 12;
 unsigned int LFOspeed = 2000;
 float LFOpitch = 1;
 float LFOdepth = 0;
-byte LFOmodeSelect = 0;
+byte LFOmodeSelect = 1;
 
 int FILfreq =  10000;
 float FILfactor = 1;
 
 byte osc1Mode = 255; // 255 = Nonsense value to force startup read
 byte osc2Mode = 255;
-
-//Switch pin numbers
-#define numSwitch 3
-#define SWosc1 2
-#define SWosc2 3
-#define SWlfo 4
 
 //MIDI CC control numbers
 #define CCmixer1 100
@@ -192,9 +186,9 @@ void loop() {
   //        FILfreq = 10000 * (outputValuePotPin1 * DIV127);
   //    filter1.frequency(FILfreq);
 
-  //LFOupdate(false, LFOmodeSelect, FILfactor, LFOdepth);
+  LFOupdate(false, LFOmodeSelect, FILfactor, LFOdepth);
   checkMux();
-  //checkSwitch();
+  checkSwitch();
 }
 
 void parseMidi() {
@@ -289,7 +283,7 @@ void checkMux() {
         myControlChange(0, CClfodepth, muxRead);
         break;
       case MUXlfomode:
-        myControlChange(0, CClfomode, muxRead / 24);
+        myControlChange(0, CClfomode, muxRead / 60);
         break;
       case MUXfilterres:
         myControlChange(0, CCfilterres, muxRead);
@@ -309,22 +303,28 @@ void checkMux() {
 
 void checkSwitch() {
 
-  if (digitalRead(SWosc1)) {
-    octave1 = 12;
-  } else {
-    octave1 = 0;
-  }
+//  if (digitalRead(SWosc1)) {
+//    octave1 = 12;
+//  } else {
+//    octave1 = 0;
+//  }
+//
+//  if (digitalRead(SWosc2)) {
+//    octave2 = -12;
+//  } else {
+//    octave2 = 0;
+//  }
 
-  if (digitalRead(SWosc2)) {
-    octave2 = -12;
-  } else {
-    octave2 = 0;
-  }
+//  if (digitalRead(SWlfo)) {
+//    if (LFOmodeSelect < 8) LFOmodeSelect = LFOmodeSelect + 8;
+//  } else {
+//    if (LFOmodeSelect >= 8) LFOmodeSelect = LFOmodeSelect - 8;
+//  }
 
-  if (digitalRead(SWlfo)) {
-    if (LFOmodeSelect < 8) LFOmodeSelect = LFOmodeSelect + 8;
-  } else {
-    if (LFOmodeSelect >= 8) LFOmodeSelect = LFOmodeSelect - 8;
+if (digitalRead(SWlfo)) {
+LFOmodeSelect=0;
+  }else{
+    LFOmodeSelect=1;
   }
 }
 
@@ -508,9 +508,11 @@ void myControlChange(byte channel, byte control, byte value) {
       LFOdepth = value * DIV127;
       break;
 
-      //    case CClfomode:
-      //      LFOmodeSelect = value;
-      //      break;
+    case CClfomode:
+     Serial.print("CClfomode");
+      Serial.println(value, DEC);
+      //LFOmodeSelect = value;
+      break;
   }
   //Serial.print(": ");
   //Serial.println(value, DEC);
