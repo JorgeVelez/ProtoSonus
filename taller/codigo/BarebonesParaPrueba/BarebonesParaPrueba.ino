@@ -8,6 +8,66 @@
 #include <SerialFlash.h>
 #endif
 
+
+
+AudioSynthWaveform       waveform2;      //xy=414,383
+AudioSynthWaveform       waveform1;      //xy=418,324
+AudioSynthNoisePink      pink1;          //xy=426,434
+AudioMixer4              mixer1;         //xy=609,384
+AudioFilterStateVariable filter1;        //xy=757,387
+AudioEffectEnvelope      envelope1;      //xy=920,388
+AudioOutputAnalogStereo        audioOut;           //xy=1059,388
+AudioConnection          patchCord1(waveform2, 0, mixer1, 1);
+AudioConnection          patchCord2(waveform1, 0, mixer1, 0);
+AudioConnection          patchCord3(pink1, 0, mixer1, 2);
+AudioConnection          patchCord4(mixer1, 0, filter1, 0);
+//AudioConnection          patchCord5(filter1, 0, envelope1, 0);
+AudioConnection          patchCord6(filter1, 0, audioOut, 0);
+AudioConnection          patchCord7(filter1, 0, audioOut, 1);
+
+// GLOBAL VARIABLES
+const byte BUFFER = 8; //Size of keyboard buffer
+const float noteFreqs[128] = {8.176, 8.662, 9.177, 9.723, 10.301, 10.913, 11.562, 12.25, 12.978, 13.75, 14.568, 15.434, 16.352, 17.324, 18.354, 19.445, 20.602, 21.827, 23.125, 24.5, 25.957, 27.5, 29.135, 30.868, 32.703, 34.648, 36.708, 38.891, 41.203, 43.654, 46.249, 48.999, 51.913, 55, 58.27, 61.735, 65.406, 69.296, 73.416, 77.782, 82.407, 87.307, 92.499, 97.999, 103.826, 110, 116.541, 123.471, 130.813, 138.591, 146.832, 155.563, 164.814, 174.614, 184.997, 195.998, 207.652, 220, 233.082, 246.942, 261.626, 277.183, 293.665, 311.127, 329.628, 349.228, 369.994, 391.995, 415.305, 440, 466.164, 493.883, 523.251, 554.365, 587.33, 622.254, 659.255, 698.456, 739.989, 783.991, 830.609, 880, 932.328, 987.767, 1046.502, 1108.731, 1174.659, 1244.508, 1318.51, 1396.913, 1479.978, 1567.982, 1661.219, 1760, 1864.655, 1975.533, 2093.005, 2217.461, 2349.318, 2489.016, 2637.02, 2793.826, 2959.955, 3135.963, 3322.438, 3520, 3729.31, 3951.066, 4186.009, 4434.922, 4698.636, 4978.032, 5274.041, 5587.652, 5919.911, 6271.927, 6644.875, 7040, 7458.62, 7902.133, 8372.018, 8869.844, 9397.273, 9956.063, 10548.08, 11175.3, 11839.82, 12543.85};
+byte globalNote = 0;
+byte globalVelocity = 0;
+byte globalChannel = 1;
+int octave1 = 0;
+int octave2 = 0;
+const float DIV127 = (1.0 / 127.0);
+float detuneFactor = 1;
+float bendFactor = 1;
+int bendRange = 12;
+
+unsigned int LFOspeed = 2000;
+float LFOpitch = 1;
+float LFOdepth = 0;
+byte LFOmodeSelect = 1;
+
+int FILfreq =  800;
+float FILfactor = 1;
+
+byte osc1Mode = 255; // 255 = Nonsense value to force startup read
+byte osc2Mode = 255;
+
+//MIDI CC control numbers
+#define CCmixer1 100
+#define CCmixer2 101
+#define CCmixer3 102
+#define CCoctave 103
+#define CCattack 104
+#define CCdecay 105
+#define CCsustain 106
+#define CCrelease 107
+#define CCosc1 108
+#define CCosc2 109
+#define CCdetune 110
+#define CCfilterfreq 111
+#define CCfilterres 112
+#define CCbendrange 113
+#define CClfospeed 114
+#define CClfodepth 115
+#define CClfomode 116
+
 //Mux Pins
 #define MS0 4
 #define MS1 5
@@ -46,82 +106,12 @@ int muxValues[MnumControls] = {};
 #define SWosc2 3
 #define SWlfo A5
 
-AudioSynthWaveform       waveform2;      //xy=414,383
-AudioSynthWaveform       waveform1;      //xy=418,324
-AudioSynthNoisePink      pink1;          //xy=426,434
-AudioMixer4              mixer1;         //xy=609,384
-AudioFilterStateVariable filter1;        //xy=757,387
-AudioEffectEnvelope      envelope1;      //xy=920,388
-AudioOutputAnalogStereo        audioOut;           //xy=1059,388
-AudioConnection          patchCord1(waveform2, 0, mixer1, 1);
-AudioConnection          patchCord2(waveform1, 0, mixer1, 0);
-AudioConnection          patchCord3(pink1, 0, mixer1, 2);
-AudioConnection          patchCord4(mixer1, 0, filter1, 0);
-AudioConnection          patchCord5(filter1, 0, envelope1, 0);
-AudioConnection          patchCord6(envelope1, 0, audioOut, 0);
-AudioConnection          patchCord7(envelope1, 0, audioOut, 1);
-
-// GLOBAL VARIABLES
-const byte BUFFER = 8; //Size of keyboard buffer
-const float noteFreqs[128] = {8.176, 8.662, 9.177, 9.723, 10.301, 10.913, 11.562, 12.25, 12.978, 13.75, 14.568, 15.434, 16.352, 17.324, 18.354, 19.445, 20.602, 21.827, 23.125, 24.5, 25.957, 27.5, 29.135, 30.868, 32.703, 34.648, 36.708, 38.891, 41.203, 43.654, 46.249, 48.999, 51.913, 55, 58.27, 61.735, 65.406, 69.296, 73.416, 77.782, 82.407, 87.307, 92.499, 97.999, 103.826, 110, 116.541, 123.471, 130.813, 138.591, 146.832, 155.563, 164.814, 174.614, 184.997, 195.998, 207.652, 220, 233.082, 246.942, 261.626, 277.183, 293.665, 311.127, 329.628, 349.228, 369.994, 391.995, 415.305, 440, 466.164, 493.883, 523.251, 554.365, 587.33, 622.254, 659.255, 698.456, 739.989, 783.991, 830.609, 880, 932.328, 987.767, 1046.502, 1108.731, 1174.659, 1244.508, 1318.51, 1396.913, 1479.978, 1567.982, 1661.219, 1760, 1864.655, 1975.533, 2093.005, 2217.461, 2349.318, 2489.016, 2637.02, 2793.826, 2959.955, 3135.963, 3322.438, 3520, 3729.31, 3951.066, 4186.009, 4434.922, 4698.636, 4978.032, 5274.041, 5587.652, 5919.911, 6271.927, 6644.875, 7040, 7458.62, 7902.133, 8372.018, 8869.844, 9397.273, 9956.063, 10548.08, 11175.3, 11839.82, 12543.85};
-byte globalNote = 0;
-byte globalVelocity = 0;
-byte globalChannel = 1;
-int octave1 = 0;
-int octave2 = 0;
-const float DIV127 = (1.0 / 127.0);
-float detuneFactor = 1;
-float bendFactor = 1;
-int bendRange = 12;
-
-unsigned int LFOspeed = 2000;
-float LFOpitch = 1;
-float LFOdepth = 0;
-byte LFOmodeSelect = 1;
-
-int FILfreq =  10000;
-float FILfactor = 1;
-
-byte osc1Mode = 255; // 255 = Nonsense value to force startup read
-byte osc2Mode = 255;
-
-//MIDI CC control numbers
-#define CCmixer1 100
-#define CCmixer2 101
-#define CCmixer3 102
-#define CCoctave 103
-#define CCattack 104
-#define CCdecay 105
-#define CCsustain 106
-#define CCrelease 107
-#define CCosc1 108
-#define CCosc2 109
-#define CCdetune 110
-#define CCfilterfreq 111
-#define CCfilterres 112
-#define CCbendrange 113
-#define CClfospeed 114
-#define CClfodepth 115
-#define CClfomode 116
-
 void setup() {
   Serial.begin(115200);
 
   AudioMemory(20);
 
-  pinMode(SWosc1, INPUT_PULLUP);
-  pinMode(SWosc2, INPUT_PULLUP);
-  pinMode(SWlfo, INPUT_PULLUP);
 
-  pinMode(MS0, OUTPUT);
-  pinMode(MS1, OUTPUT);
-  pinMode(MS2, OUTPUT);
-  pinMode(MS3, OUTPUT);
-
-  digitalWrite(MS0, LOW);
-  digitalWrite(MS1, LOW);
-  digitalWrite(MS2, LOW);
-  digitalWrite(MS3, LOW);
 
   waveform1.begin(WAVEFORM_SAWTOOTH);
   waveform1.amplitude(0.75);
@@ -140,44 +130,38 @@ void setup() {
 
   mixer1.gain(0, 1.0);
   mixer1.gain(1, 1.0);
-  mixer1.gain(2, 0.0);
+  mixer1.gain(2, 1.0);
 
   envelope1.attack(50);
   envelope1.decay(50);
   envelope1.release(250);
+
+    pinMode(SWosc1, INPUT_PULLUP);
+  pinMode(SWosc2, INPUT_PULLUP);
+  pinMode(SWlfo, INPUT_PULLUP);
+
+  pinMode(MS0, OUTPUT);
+  pinMode(MS1, OUTPUT);
+  pinMode(MS2, OUTPUT);
+  pinMode(MS3, OUTPUT);
+
+  digitalWrite(MS0, LOW);
+  digitalWrite(MS1, LOW);
+  digitalWrite(MS2, LOW);
+  digitalWrite(MS3, LOW);
 }
 
 void loop() {
-  parseMidi();
-  LFOupdate(false, LFOmodeSelect, FILfactor, LFOdepth);
-  checkMux();
+  //checkMux();
+  //LFOupdate(false, LFOmodeSelect, FILfactor, LFOdepth);
   checkSwitch();
+  
+  parseMidi();
+  
+
 }
 
-void parseMidi() {
-  midiEventPacket_t rx;
-  do {
-    rx = MidiUSB.read();
-    if (rx.header != 0) {
-      if (rx.header == 0x8) {
-        myNoteOff(globalChannel, rx.byte2, rx.byte3);
 
-      }
-      if (rx.header == 0x9) {
-        myNoteOn(globalChannel, rx.byte2, rx.byte3);
-      }
-
-      if (rx.header == 0xb) {
-        Serial.print("Received CC: ");
-        Serial.print(rx.byte2);
-        Serial.print("- value: ");
-        Serial.println(rx.byte3);
-
-        myControlChange(globalChannel, rx.byte2, rx.byte3);
-      }
-    }
-  } while (rx.header != 0);
-}
 
 static unsigned long ReadTimetime = 0;
 
@@ -449,21 +433,6 @@ void LFOupdate(bool retrig, byte mode, float FILtop, float FILbottom) {
   if (currentMicros - LFOtime >= LFOspeed) {
     LFOtime = currentMicros;
 
-    if (mode != oldMode) {
-      if (mode == 0 || mode == 8) {
-        LFOpitch = 1;
-        oscSet();
-        filter1.frequency(FILfreq);
-      }
-      else if (mode >= 1 || mode <= 7) {
-        LFOpitch = 1;
-        oscSet();
-      }
-      else if (mode >= 9 || mode <= 13) {
-        filter1.frequency(FILfreq);
-      }
-      oldMode = mode;
-    }
 
     LFOrange = FILtop - FILbottom;
     if (LFOrange < 0) LFOrange = 0;
@@ -477,81 +446,7 @@ void LFOupdate(bool retrig, byte mode, float FILtop, float FILbottom) {
       case 1: //Filter FREE
         filter1.frequency(10000 * ((LFOrange * LFO) + LFOdepth));
         break;
-      case 2: //Filter DOWN
-        if (retriggered == true) {
-          LFOdirection = true;
-          LFO = 1.0;
-        }
-        filter1.frequency(10000 * ((LFOrange * LFO) + LFOdepth));
-        break;
-      case 3: //Filter UP
-        if (retriggered == true) {
-          LFOdirection = false;
-          LFO = 0;
-        }
-        filter1.frequency(10000 * ((LFOrange * LFO) + LFOdepth));
-        break;
-      case 4: //Filter 1-DN
-        if (retriggered == true) {
-          LFOstop = false;
-          LFOdirection = true;
-          LFO = 1.0;
-        }
-        if (LFOstop == false) filter1.frequency(10000 * ((LFOrange * LFO) + LFOdepth));
-        break;
-      case 5: //Filter 1-UP
-        if (retriggered == true) {
-          LFOstop = false;
-          LFOdirection = false;
-          LFO = 0;
-        }
-        if (LFOstop == false) filter1.frequency(10000 * ((LFOrange * LFO) + LFOdepth));
-        break;
-      case 8: //Pitch OFF
-        return;
-        break;
-      case 9: //Pitch FREE
-        LFOpitch = (LFO * LFOdepth) + 1;
-        oscSet();
-        break;
-      case 10: //Pitch DOWN
-        if (retriggered == true) {
-          LFOdirection = true;
-          LFO = 1.0;
-        }
-        LFOpitch = (LFO * LFOdepth) + 1;
-        oscSet();
-        break;
-      case 11: //Pitch UP
-        if (retriggered == true) {
-          LFOdirection = false;
-          LFO = 0;
-        }
-        LFOpitch = (LFO * LFOdepth) + 1;
-        oscSet();
-        break;
-      case 12: //Pitch 1-DN
-        if (retriggered == true) {
-          LFOstop = false;
-          LFOdirection = true;
-          LFO = 1.0;
-        }
-        if (LFOstop == false) {
-          LFOpitch = (LFO * LFOdepth) + 1;
-          oscSet();
-        }
-        break;
-      case 13: //Pitch 1-UP
-        if (retriggered == true) {
-          LFOstop = false;
-          LFOdirection = false;
-          LFO = 0;
-        }
-        if (LFOstop == false) {
-          LFOpitch = (LFO * LFOdepth) + 1;
-          oscSet();
-        }
-        break;
+     
     }
 
     retriggered = false;
@@ -595,8 +490,33 @@ void oscSet() {
   waveform1.frequency(noteFreqs[globalNote + octave1] * bendFactor * LFOpitch);
   waveform2.frequency(noteFreqs[globalNote + octave2] * detuneFactor * bendFactor * LFOpitch);
 }
-
 //MIDI IN
+void parseMidi() {
+  midiEventPacket_t rx;
+  do {
+    rx = MidiUSB.read();
+    if (rx.header != 0) {
+      if (rx.header == 0x8) {
+        myNoteOff(globalChannel, rx.byte2, rx.byte3);
+
+      }
+      if (rx.header == 0x9) {
+        myNoteOn(globalChannel, rx.byte2, rx.byte3);
+      }
+
+      if (rx.header == 0xb) {
+        Serial.print("Received CC: ");
+        Serial.print(rx.byte2);
+        Serial.print("- value: ");
+        Serial.println(rx.byte3);
+
+        myControlChange(globalChannel, rx.byte2, rx.byte3);
+      }
+    }
+  } while (rx.header != 0);
+}
+
+//MIDI OUT
 
 void noteOn(byte channel, byte pitch, byte velocity) {
   midiEventPacket_t noteOn = {0x09, 0x90 | channel, pitch, velocity};
