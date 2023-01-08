@@ -19,7 +19,7 @@ void setup() {
   size(1200, 800);
   
    MidiBus.list();
-  myBus = new MidiBus(this, 0, 3); 
+  myBus = new MidiBus(this, 0, "Feather M4 Express"); 
   cp5 = new ControlP5(this);
   
   delay(1000);
@@ -133,19 +133,6 @@ Knob createButton(String thePrefix, int theIndex, int theValue) {
   }
   );
 }
-
-//void OSC1(int value) {
-// int number = 100;
-//  myBus.sendControllerChange(channel, number, value);
-//}
-//void OSC2(int value) {
-// int number = 101;
-//  myBus.sendControllerChange(channel, number, value);
-//}
-//void NOISE(int value) {
-// int number = 102;
-//  myBus.sendControllerChange(channel, number, value);
-//}
 
 void slider(int value) {
  int number = 16;

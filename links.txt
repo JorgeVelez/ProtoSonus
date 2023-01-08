@@ -4,6 +4,9 @@ http://editor.patchandtweak.com/
 EJEMPLOS AUDIO:
 https://tonejs.github.io/examples/
 
+HERRAMIENTA DE DISEÑO
+https://www.pjrc.com/teensy/gui
+
 BUENA DOCUMENTACIÓN SOBRE SíNTESIS
 
 MATERIAL:
