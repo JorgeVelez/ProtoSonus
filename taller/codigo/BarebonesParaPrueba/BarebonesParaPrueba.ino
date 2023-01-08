@@ -40,28 +40,6 @@ int muxChannel[16][4] = {
 byte muxInput = 0;
 int muxValues[MnumControls] = {};
 
-#define MUXosc1 1
-#define MUXosc2 2//c
-#define MUXdetune 6//a
-#define MUXmix1 3//c
-#define MUXmix2 4
-#define MUXmix3 5
-#define MUXattack 8//d
-#define MUXdecay 9//d
-#define MUXsustain 11
-#define MUXrelease 13//b
-#define MUXlfospeed 12//b
-#define MUXlfodepth 10
-#define MUXlfomode 14
-#define MUXfilterres 7//a
-#define MUXfilterfreq 0
-
-//POTENTIOMETERS
-//int potPin1 = A4;
-//int potPin2 = A5;
-//int outputValuePotPin1 = 0.0;
-//int sensorValuePotPin1 = 0;
-
 //Switch pin numbers
 #define numSwitch 3
 #define SWosc1 2
@@ -204,56 +182,56 @@ void parseMidi() {
 static unsigned long ReadTimetime = 0;
 
 void checkMux() {
-
   int muxRead = analogRead(MZ);
+  muxRead=map(muxRead, 1024, 0, 0, 1024);
 
   if (muxRead > (muxValues[muxInput] + 7) || muxRead < (muxValues[muxInput] - 7)) {
     muxValues[muxInput] = muxRead;
     muxRead = (muxRead >> 3);
     switch (muxInput) {
-      case MUXosc1:
+      case 1:
         if (muxRead != osc1Mode) myControlChange(0, CCosc1, muxRead / 32);
         break;
-      case MUXosc2:
+      case 2:
         if (muxRead != osc2Mode) myControlChange(0, CCosc2, muxRead / 32);
         break;
-      case MUXdetune:
+      case 6:
         myControlChange(0, CCdetune, muxRead);
         break;
-      case MUXmix1:
+      case 3:
         myControlChange(0, CCmixer1, muxRead);
         break;
-      case MUXmix2:
+      case 4:
         myControlChange(0, CCmixer2, muxRead);
         break;
-      case MUXmix3:
+      case 5:
         myControlChange(0, CCmixer3, muxRead);
         break;
-      case MUXattack:
+      case 8:
         myControlChange(0, CCattack, muxRead);
         break;
-      case MUXdecay:
+      case 9:
         myControlChange(0, CCdecay, muxRead);
         break;
-      case MUXsustain:
+      case 11:
         myControlChange(0, CCsustain, muxRead);
         break;
-      case MUXrelease:
+      case 13:
         myControlChange(0, CCrelease, muxRead);
         break;
-      case MUXlfospeed:
+      case 12:
         myControlChange(0, CClfospeed, muxRead);
         break;
-      case MUXlfodepth:
+      case 10:
         myControlChange(0, CClfodepth, muxRead);
         break;
-      case MUXlfomode:
+      case 14:
         myControlChange(0, CClfomode, muxRead / 60);
         break;
-      case MUXfilterres:
+      case 7:
         myControlChange(0, CCfilterres, muxRead);
         break;
-      case MUXfilterfreq:
+      case 0:
         myControlChange(0, CCfilterfreq, muxRead);
         break;
     }
