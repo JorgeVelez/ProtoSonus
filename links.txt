@@ -8,6 +8,7 @@ HERRAMIENTA DE DISEÑO
 https://www.pjrc.com/teensy/gui
 
 BUENA DOCUMENTACIÓN SOBRE SíNTESIS
+http://thewessens.net/synthbook/#constructive-synthesis
 
 MATERIAL:
 https://drive.google.com/drive/folders/1JoIfS10LMhq4aMeGh-jI5L3bu_jUrMHQ?usp=sharing
